@@ -1,0 +1,26 @@
+name: Daily NHK Radio Update
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests feedparser beautifulsoup4 lxml
+      - run: python scraper_nhk_radio.py
+      - run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+          if git diff --stat | grep -q "articles_nhk_radio.json"; then
+            git add articles_nhk_radio.json
+            git commit -m "Auto update: $(date +%Y-%m-%d)"
+            git push
+          fi
