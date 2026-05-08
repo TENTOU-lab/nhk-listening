@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>慢速练习 - NHKListening</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #66bb6a;
+      --primary-dark: #43a047;
+      --bg: #f8faf7;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-light: #666666;
+      --border: #e0e8e2;
+    }
+    
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .header-info {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .back-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 32px 0;
+      margin-bottom: 24px;
+    }
+    
+    .hero h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .hero p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .info-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .info-box h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .info-box ul {
+      list-style: none;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    
+    .info-box li {
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .info-box li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+    
+    .today-section {
+      padding: 0 0 24px 0;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .date-badge {
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: normal;
+    }
+    
+    .article-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .article-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .article-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    
+    .article-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: var(--border);
+    }
+    
+    .article-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    
+    .level-beginner {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .level-intermediate {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    
+    .level-advanced {
+      background: #fce4ec;
+      color: #c2185b;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-light);
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-light);
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-light);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+    
+    footer a {
+      color: var(--primary-dark);
+      text-decoration: none;
+    }
+    
+    footer a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 20px;
+      }
+      
+      .article-card {
+        padding: 14px;
+      }
+      
+      .article-image {
+        height: 140px;
+      }
+      
+      .article-title {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🐢</div>
+        <span class="logo-text">慢速练习</span>
+      </a>
+      <a href="index.html" class="back-link">← 返回主页</a>
+    </div>
+  </header>
+  
+  <section class="hero">
+    <div class="container">
+      <h1>🐢 NHK Easy 慢速练习</h1>
+      <p>慢速音频 + 完整文字 + 振り仮名，适合初学者</p>
+    </div>
+  </section>
+  
+  <main class="container">
+    <!-- Info Box -->
+    <div class="info-box">
+      <h3>💡 特点</h3>
+      <ul>
+        <li>音频为<strong>慢速朗读</strong>（ゆっくり），方便跟听</li>
+        <li>配有完整的<strong>日文原文</strong>和<strong>振り仮名</strong></li>
+        <li>🌱 初级按「、」分割短句，🌿 中级按「。」分割完整句，🌳 高级按段落分割</li>
+        <li>连续5次95%以上正确率可解锁下一难度</li>
+      </ul>
+    </div>
+    
+    <section class="today-section" id="slowSection">
+      <div class="loading" id="loadingState">
+        <div class="loading-spinner"></div>
+        <p>加载文章列表...</p>
+      </div>
+      <div id="contentArea" style="display: none;">
+        <h2 class="section-title">
+          📰 最新文章
+          <span class="date-badge" id="dateBadge"></span>
+        </h2>
+        <div class="article-list" id="articleList"></div>
+      </div>
+      <div class="error-message" id="errorState" style="display: none;"></div>
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon">📭</div>
+        <p>暂无文章数据</p>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <p>数据来源: <a href="https://nhkeasier.com" target="_blank">nhkeasier.com</a></p>
+    <p style="margin-top: 8px;">Powered by TENTOU-lab</p>
+  </footer>
+  
+  <script>
+    let articlesData = null;
+    
+    async function loadArticles() {
+      const loadingState = document.getElementById('loadingState');
+      const contentArea = document.getElementById('contentArea');
+      const errorState = document.getElementById('errorState');
+      const emptyState = document.getElementById('emptyState');
+      const updateTime = document.getElementById('updateTime');
+      const articleList = document.getElementById('articleList');
+      const dateBadge = document.getElementById('dateBadge');
+      
+      try {
+        const response = await fetch('articles.json');
+        if (!response.ok) {
+          throw new Error('无法加载文章数据');
+        }
+        
+        articlesData = await response.json();
+        
+        updateTime.textContent = `更新于: ${articlesData.last_updated}`;
+        dateBadge.textContent = `共 ${articlesData.total_articles} 篇文章`;
+        
+        if (articlesData.articles && articlesData.articles.length > 0) {
+          renderArticles(articlesData.articles);
+          loadingState.style.display = 'none';
+          contentArea.style.display = 'block';
+        } else {
+          loadingState.style.display = 'none';
+          emptyState.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+        loadingState.style.display = 'none';
+        errorState.textContent = `加载失败: ${error.message}`;
+        errorState.style.display = 'block';
+      }
+    }
+    
+    function renderArticles(articles) {
+      const articleList = document.getElementById('articleList');
+      articleList.innerHTML = '';
+      
+      articles.forEach(article => {
+        const card = document.createElement('a');
+        card.className = 'article-card';
+        card.href = `practice.html?id=${article.id}`;
+        
+        const level = getDifficultyLevel(article);
+        
+        let imageHtml = '';
+        if (article.image_url) {
+          imageHtml = `<img class="article-image" src="${article.image_url}" alt="${article.title}" loading="lazy" onerror="this.style.display='none'">`;
+        }
+        
+        card.innerHTML = `
+          ${imageHtml}
+          <div class="article-title">${escapeHtml(article.title)}</div>
+          <div class="article-meta">
+            <span class="meta-item">📅 ${formatDate(article.date)}</span>
+            <span class="meta-item">🎵 ${countSentences(article)} 句</span>
+          </div>
+          <div style="margin-top: 10px;">
+            <span class="level-badge ${level.class}">${level.label}</span>
+          </div>
+        `;
+        
+        articleList.appendChild(card);
+      });
+    }
+    
+    function getDifficultyLevel(article) {
+      const beginnerCount = article.sentences_beginner?.length || 0;
+      const intermediateCount = article.sentences_intermediate?.length || 0;
+      const advancedCount = article.sentences_advanced?.length || 0;
+      
+      if (beginnerCount > 0 && intermediateCount > 0 && advancedCount > 0) {
+        return { label: '🌱 初/中/高级', class: 'level-beginner' };
+      } else if (intermediateCount > 0) {
+        return { label: '🌿 中级', class: 'level-intermediate' };
+      } else if (advancedCount > 0) {
+        return { label: '🌳 高级', class: 'level-advanced' };
+      }
+      return { label: '📖 练习', class: 'level-beginner' };
+    }
+    
+    function countSentences(article) {
+      return article.sentences_beginner?.length || 
+             article.sentences_intermediate?.length || 
+             article.sentences_advanced?.length || 0;
+    }
+    
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return `${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadArticles);
+  </script>
+</body>
+</html>

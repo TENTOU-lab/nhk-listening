@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>快速听力 - NHK Radio News</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #ff7043;
+      --primary-dark: #e64a19;
+      --bg: #f8faf7;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-light: #666666;
+      --border: #e0e8e2;
+      --success: #4caf50;
+      --warning: #ff9800;
+    }
+    
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .back-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 32px 0;
+      margin-bottom: 24px;
+    }
+    
+    .hero h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .hero p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .info-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .info-box h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .info-box ul {
+      list-style: none;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    
+    .info-box li {
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .info-box li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+    
+    .today-section {
+      padding: 0 0 24px 0;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .date-badge {
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: normal;
+    }
+    
+    .latest-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    
+    .latest-card .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    
+    .latest-card .title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    
+    .latest-card .meta {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 20px;
+    }
+    
+    .latest-card .meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .latest-card .audio-preview {
+      margin-bottom: 20px;
+    }
+    
+    .latest-card .audio-preview audio {
+      width: 100%;
+      height: 44px;
+      border-radius: 8px;
+    }
+    
+    .latest-card .actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .latest-card .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .latest-card .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .latest-card .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .latest-card .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+    }
+    
+    .latest-card .btn-secondary:hover {
+      background: var(--border);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-has-text {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .status-needs-text {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    
+    .local-upload-section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 2px dashed var(--border);
+    }
+    
+    .local-upload-section h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .local-upload-section p {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+    
+    .upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #f3e5f5;
+      color: #7b1fa2;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .upload-btn:hover {
+      background: #e1bee7;
+    }
+    
+    .upload-input {
+      display: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-light);
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-light);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+    
+    footer a {
+      color: var(--primary-dark);
+      text-decoration: none;
+    }
+    
+    footer a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 20px;
+      }
+      
+      .latest-card {
+        padding: 20px;
+      }
+      
+      .latest-card .title {
+        font-size: 18px;
+      }
+      
+      .latest-card .actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">⚡</div>
+        <span class="logo-text">快速听力</span>
+      </a>
+      <a href="index.html" class="back-link">← 返回主页</a>
+    </div>
+  </header>
+  
+  <section class="hero">
+    <div class="container">
+      <h1>⚡ NHK Radio News 快速听力</h1>
+      <p>真实语速广播，挑战你的日语听力极限</p>
+    </div>
+  </section>
+  
+  <main class="container">
+    <!-- Info Box -->
+    <div class="info-box">
+      <h3>💡 使用说明</h3>
+      <ul>
+        <li>每天自动更新1条<strong>NHK Radio News</strong>广播（正常播报速度）</li>
+        <li>支持<strong>导入本地音频</strong>自由练习</li>
+        <li>输入日文文字后开始听写练习</li>
+        <li>🌱 初级按「、」分割，🌿 中级按「。」分割，🌳 高级按段落分割</li>
+        <li>本地音频模式可<strong>自由切换难度</strong>，不受进阶限制</li>
+      </ul>
+    </div>
+    
+    <section class="today-section" id="slowSection">
+      <div class="loading" id="loadingState">
+        <div class="loading-spinner"></div>
+        <p>加载NHK广播...</p>
+      </div>
+      
+      <div id="contentArea" style="display: none;">
+        <!-- Latest NHK Audio Card -->
+        <div class="latest-card" id="latestCard">
+          <span class="badge">📻 今日最新</span>
+          <div class="title" id="articleTitle">加载中...</div>
+          <div class="meta">
+            <span id="articleDate">📅 --月--日</span>
+            <span id="articleDuration">⏱ --:--</span>
+          </div>
+          <div class="audio-preview">
+            <audio id="audioPreview" controls preload="metadata">
+              <source id="audioSource" type="audio/mpeg">
+              您的浏览器不支持音频
+            </audio>
+          </div>
+          <div class="actions">
+            <a href="practice_fast.html" class="btn btn-primary" id="practiceBtn">
+              📝 开始练习
+            </a>
+            <a href="practice_fast.html?mode=local" class="btn btn-secondary">
+              💾 导入本地音频
+            </a>
+          </div>
+        </div>
+        
+        <!-- Local Upload Section -->
+        <div class="local-upload-section" id="localUploadSection">
+          <h3>🎵 导入本地音频练习</h3>
+          <p>上传你自己的音频文件（MP3、WAV、M4A等），自由练习听写</p>
+          <button class="upload-btn" onclick="document.getElementById('localFileInput').click()">
+            📂 选择音频文件
+          </button>
+          <input type="file" id="localFileInput" class="upload-input" accept="audio/*" onchange="handleLocalUpload(event)">
+        </div>
+      </div>
+      
+      <div class="error-message" id="errorState" style="display: none;">
+        <p id="errorText">加载失败</p>
+        <p style="margin-top: 12px; font-size: 13px;">
+          请确保已运行 <code>python scraper_nhk_radio.py</code> 生成数据文件
+        </p>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <p>音频来源: <a href="https://www.nhk.or.jp/radionews/" target="_blank">NHK Radio News</a></p>
+    <p style="margin-top: 8px;">Powered by TENTOU-lab</p>
+  </footer>
+  
+  <script>
+    function handleLocalUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Store file info in localStorage and redirect
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        localStorage.setItem('nhk_local_audio_name', file.name);
+        localStorage.setItem('nhk_local_audio_data', e.target.result);
+        window.location.href = 'practice_fast.html?mode=local';
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    async function loadLatestAudio() {
+      const loadingState = document.getElementById('loadingState');
+      const contentArea = document.getElementById('contentArea');
+      const errorState = document.getElementById('errorState');
+      
+      try {
+        const response = await fetch('articles_nhk_radio.json');
+        if (!response.ok) {
+          throw new Error('数据文件不存在');
+        }
+        
+        const data = await response.json();
+        
+        if (data.length > 0) {
+          const article = data[0];
+          
+          document.getElementById('articleTitle').textContent = article.title;
+          document.getElementById('articleDate').textContent = '📅 ' + formatDate(article.date);
+          document.getElementById('articleDuration').textContent = '⏱ ' + (article.duration || '--:--');
+          
+          if (article.mp3_url) {
+            document.getElementById('audioSource').src = article.mp3_url;
+            document.getElementById('audioPreview').load();
+          }
+          
+          loadingState.style.display = 'none';
+          contentArea.style.display = 'block';
+        } else {
+          throw new Error('暂无数据');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        loadingState.style.display = 'none';
+        errorState.style.display = 'block';
+        document.getElementById('errorText').textContent = error.message;
+      }
+    }
+    
+    function formatDate(dateStr) {
+      if (!dateStr) return '--月--日';
+      try {
+        const date = new Date(dateStr);
+        return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}时`;
+      } catch {
+        return dateStr;
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadLatestAudio);
+  </script>
+</body>
+</html>

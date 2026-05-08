@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NHKListening - ニュースで聴解練習</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #7cb08a;
+      --primary-dark: #5a8a66;
+      --fast-color: #ff7043;
+      --fast-bg: #fff3e0;
+      --slow-color: #66bb6a;
+      --slow-bg: #e8f5e9;
+      --local-color: #9c27b0;
+      --local-bg: #f3e5f5;
+      --bg: #f8faf7;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-light: #666666;
+      --border: #e0e8e2;
+    }
+    
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .header-info {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 32px 0;
+      margin-bottom: 24px;
+    }
+    
+    .hero h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .hero p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    /* Mode Selector */
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 0 0 24px 0;
+    }
+    
+    .mode-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .mode-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    
+    .mode-card.active {
+      border-color: var(--primary);
+    }
+    
+    .mode-card.slow-mode {
+      background: var(--slow-bg);
+    }
+    
+    .mode-card.fast-mode {
+      background: var(--fast-bg);
+    }
+    
+    .mode-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    
+    .mode-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .mode-desc {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .mode-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+    
+    .slow-mode .mode-tag {
+      background: var(--slow-color);
+      color: white;
+    }
+    
+    .fast-mode .mode-tag {
+      background: var(--fast-color);
+      color: white;
+    }
+    
+    .mode-card.local-mode {
+      background: var(--local-bg);
+    }
+    
+    .local-mode .mode-tag {
+      background: var(--local-color);
+      color: white;
+    }
+    
+    .today-section {
+      padding: 0 0 24px 0;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .date-badge {
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: normal;
+    }
+    
+    .article-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .article-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .article-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    
+    .article-card.has-text {
+      border-left: 4px solid var(--slow-color);
+    }
+    
+    .article-card.no-text {
+      border-left: 4px solid var(--border);
+    }
+    
+    .article-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: var(--border);
+    }
+    
+    .article-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    
+    .level-beginner {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .level-intermediate {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    
+    .level-advanced {
+      background: #fce4ec;
+      color: #c2185b;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-light);
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-light);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+    
+    footer a {
+      color: var(--primary-dark);
+      text-decoration: none;
+    }
+    
+    footer a:hover {
+      text-decoration: underline;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-light);
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    /* Stats Chart */
+    .stats-section {
+      margin-bottom: 24px;
+    }
+    
+    .stats-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    .stats-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .stats-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .stats-summary {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .summary-item {
+      text-align: center;
+    }
+    
+    .summary-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+    
+    .summary-label {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    .chart-container {
+      width: 100%;
+      height: 200px;
+    }
+    
+    .no-stats {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-light);
+    }
+    
+    .no-stats-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+    
+    /* Data Actions */
+    .data-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .data-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .data-btn:hover {
+      background: var(--bg);
+      border-color: var(--primary);
+    }
+    
+    .data-btn.primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .data-btn.primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .storage-warning {
+      background: #fff3e0;
+      color: #e65100;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      display: none;
+    }
+    
+    .storage-warning.show {
+      display: block;
+    }
+    
+    .storage-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    
+    .storage-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+    
+    .storage-bar-fill.warning {
+      background: var(--warning);
+    }
+    
+    .storage-bar-fill.danger {
+      background: var(--error);
+    }
+    
+    /* Cloud Sync */
+    .cloud-sync {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .cloud-sync.show {
+      display: block;
+    }
+    
+    .cloud-sync-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .cloud-sync-title {
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .cloud-sync-status {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    .cloud-sync-status.connected {
+      color: var(--success);
+    }
+    
+    .gist-id-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    
+    .gist-id-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .import-input {
+      display: none;
+    }
+    
+    .help-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    
+    .help-box h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .help-box p {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 20px;
+      }
+      
+      .mode-selector {
+        grid-template-columns: 1fr;
+      }
+      
+      .article-card {
+        padding: 14px;
+      }
+      
+      .article-image {
+        height: 140px;
+      }
+      
+      .article-title {
+        font-size: 15px;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🎧</div>
+        <span class="logo-text">NHKListening</span>
+      </a>
+      <div class="header-info" id="updateTime">数据加载中...</div>
+    </div>
+  </header>
+  
+  <section class="hero">
+    <div class="container">
+      <h1>📻 NHK 聴解練習</h1>
+      <p>选择练习模式，开始你的日语听力训练</p>
+    </div>
+  </section>
+  
+  <main class="container">
+    <!-- Mode Selector -->
+    <div class="mode-selector">
+      <a href="index_slow.html" class="mode-card slow-mode" id="slowModeCard">
+        <div class="mode-icon">🐢</div>
+        <div class="mode-title">慢速练习</div>
+        <div class="mode-desc">nhkeasier.com 内容<br>慢速音频 + 完整文字</div>
+        <span class="mode-tag">完整功能</span>
+      </a>
+      <a href="index_fast.html" class="mode-card fast-mode" id="fastModeCard">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-title">快速听力</div>
+        <div class="mode-desc">NHK Radio News<br>正常速度音频</div>
+        <span class="mode-tag">真实语速</span>
+      </a>
+      <a href="practice_fast.html?mode=local" class="mode-card local-mode" id="localModeCard">
+        <div class="mode-icon">💾</div>
+        <div class="mode-title">本地音频</div>
+        <div class="mode-desc">上传你自己的音频<br>自由练习，无限制</div>
+        <span class="mode-tag">自由模式</span>
+      </a>
+    </div>
+    
+    <!-- Slow Mode Content (default) -->
+    <section class="today-section" id="slowSection">
+      <div class="loading" id="loadingState">
+        <div class="loading-spinner"></div>
+        <p>加载文章列表...</p>
+      </div>
+      <div id="contentArea" style="display: none;">
+        <h2 class="section-title">
+          📰 最新文章
+          <span class="date-badge" id="dateBadge"></span>
+        </h2>
+        <div class="article-list" id="articleList"></div>
+      </div>
+      <div class="error-message" id="errorState" style="display: none;"></div>
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon">📭</div>
+        <p>暂无文章数据</p>
+      </div>
+    </section>
+    
+    <!-- Stats Chart -->
+    <section class="stats-section" id="statsSection">
+      <div class="stats-card">
+        <div class="stats-header">
+          <div class="stats-title">📈 练习统计</div>
+          <div class="stats-summary">
+            <div class="summary-item">
+              <div class="summary-value" id="totalCount">0</div>
+              <div class="summary-label">练习次数</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-value" id="avgRate">--</div>
+              <div class="summary-label">平均正确率</div>
+            </div>
+          </div>
+        </div>
+        <div id="chartArea">
+          <div class="no-stats" id="noStats">
+            <div class="no-stats-icon">📊</div>
+            <p>暂无练习数据</p>
+            <p style="font-size: 12px; margin-top: 4px;">完成练习后会自动记录</p>
+          </div>
+          <div id="chart" class="chart-container" style="display: none;"></div>
+        </div>
+        
+        <!-- Storage Warning -->
+        <div class="storage-warning" id="storageWarning">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>⚠️</span>
+            <span id="storageWarningText">本地存储空间不足</span>
+          </div>
+          <div class="storage-bar">
+            <div class="storage-bar-fill" id="storageBarFill"></div>
+          </div>
+        </div>
+        
+        <!-- Data Actions -->
+        <div class="data-actions">
+          <button class="data-btn" onclick="exportStats()">📤 导出数据</button>
+          <button class="data-btn" onclick="document.getElementById('importFile').click()">📥 导入数据</button>
+          <input type="file" id="importFile" class="import-input" accept=".json" onchange="importStats(event)">
+          <button class="data-btn" onclick="toggleCloudSync()">☁️ 云端同步</button>
+          <button class="data-btn" onclick="clearStats()">🗑️ 清理数据</button>
+        </div>
+        
+        <!-- Cloud Sync Section -->
+        <div class="cloud-sync" id="cloudSync">
+          <div class="cloud-sync-header">
+            <div class="cloud-sync-title">
+              ☁️ GitHub Gist 云端同步
+              <span class="cloud-sync-status" id="cloudStatus">未连接</span>
+            </div>
+          </div>
+          <p style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+            使用 GitHub Gist 存储数据，换设备也能同步。首次使用需要创建 GitHub 账号并生成 Personal Access Token。
+          </p>
+          <input type="text" class="gist-id-input" id="gistToken" placeholder="粘贴你的 GitHub Personal Access Token">
+          <div style="display: flex; gap: 8px;">
+            <button class="data-btn primary" onclick="connectGist()">连接</button>
+            <button class="data-btn" onclick="syncToGist()">⬆️ 上传</button>
+            <button class="data-btn" onclick="syncFromGist()">⬇️ 下载</button>
+            <button class="data-btn" onclick="disconnectGist()">断开</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Help Box -->
+    <div class="help-box" id="helpBox">
+      <h3>💡 两种模式有什么区别？</h3>
+      <p><strong>🐢 慢速练习：</strong>使用nhkeasier.com的内容，音频较慢（ゆっくり），配有完整的日文文字和振り仮名，适合初学者。</p>
+      <p><strong>⚡ 快速听力：</strong>使用NHK Radio News的真实广播音频，语速正常。需要你手动输入或粘贴日文文字来进行听写练习。</p>
+      <p style="margin-top: 12px;">📝 <strong>推荐流程：</strong>先用慢速练习打基础，再用快速听力挑战真实语速！</p>
+    </div>
+  </main>
+  
+  <footer>
+    <p>数据来源: <a href="https://nhkeasier.com" target="_blank">nhkeasier.com</a></p>
+    <p style="margin-top: 8px;">Powered by TENTOU-lab</p>
+  </footer>
+  
+  <script>
+    // Article data embedded from JSON
+    let articlesData = null;
+    
+    async function loadArticles() {
+      const loadingState = document.getElementById('loadingState');
+      const contentArea = document.getElementById('contentArea');
+      const errorState = document.getElementById('errorState');
+      const emptyState = document.getElementById('emptyState');
+      const updateTime = document.getElementById('updateTime');
+      const articleList = document.getElementById('articleList');
+      const dateBadge = document.getElementById('dateBadge');
+      
+      try {
+        const response = await fetch('articles.json');
+        if (!response.ok) {
+          throw new Error('无法加载文章数据');
+        }
+        
+        articlesData = await response.json();
+        
+        // Update header
+        updateTime.textContent = `更新于: ${articlesData.last_updated}`;
+        dateBadge.textContent = `共 ${articlesData.total_articles} 篇文章`;
+        
+        // Render articles
+        if (articlesData.articles && articlesData.articles.length > 0) {
+          renderArticles(articlesData.articles);
+          loadingState.style.display = 'none';
+          contentArea.style.display = 'block';
+        } else {
+          loadingState.style.display = 'none';
+          emptyState.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error);
+        loadingState.style.display = 'none';
+        errorState.textContent = `加载失败: ${error.message}`;
+        errorState.style.display = 'block';
+      }
+    }
+    
+    function renderArticles(articles) {
+      const articleList = document.getElementById('articleList');
+      articleList.innerHTML = '';
+      
+      articles.forEach(article => {
+        const card = document.createElement('a');
+        card.className = 'article-card';
+        card.href = `practice.html?id=${article.id}`;
+        
+        // Get difficulty level from sentence count
+        const level = getDifficultyLevel(article);
+        
+        let imageHtml = '';
+        if (article.image_url) {
+          imageHtml = `<img class="article-image" src="${article.image_url}" alt="${article.title}" loading="lazy" onerror="this.style.display='none'">`;
+        }
+        
+        card.innerHTML = `
+          ${imageHtml}
+          <div class="article-title">${escapeHtml(article.title)}</div>
+          <div class="article-meta">
+            <span class="meta-item">📅 ${formatDate(article.date)}</span>
+            <span class="meta-item">🎵 ${countSentences(article)} 句</span>
+          </div>
+          <div style="margin-top: 10px;">
+            <span class="level-badge ${level.class}">${level.label}</span>
+          </div>
+        `;
+        
+        articleList.appendChild(card);
+      });
+    }
+    
+    function getDifficultyLevel(article) {
+      // Check if all levels have content
+      const beginnerCount = article.sentences_beginner?.length || 0;
+      const intermediateCount = article.sentences_intermediate?.length || 0;
+      const advancedCount = article.sentences_advanced?.length || 0;
+      
+      if (beginnerCount > 0 && intermediateCount > 0 && advancedCount > 0) {
+        return { label: '🌱 初/中/高级', class: 'level-beginner' };
+      } else if (intermediateCount > 0) {
+        return { label: '🌿 中级', class: 'level-intermediate' };
+      } else if (advancedCount > 0) {
+        return { label: '🌳 高级', class: 'level-advanced' };
+      }
+      return { label: '📖 练习', class: 'level-beginner' };
+    }
+    
+    function countSentences(article) {
+      return article.sentences_beginner?.length || 
+             article.sentences_intermediate?.length || 
+             article.sentences_advanced?.length || 0;
+    }
+    
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return `${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // ============ Stats & Chart ============
+    
+    const STATS_KEY = 'nhk_listening_stats';
+    let chartInstance = null;
+    
+    // Load and display stats
+    function loadStats() {
+      try {
+        const saved = localStorage.getItem(STATS_KEY);
+        const stats = saved ? JSON.parse(saved) : [];
+        
+        // Update summary
+        document.getElementById('totalCount').textContent = stats.length;
+        
+        if (stats.length > 0) {
+          const avgRate = Math.round(stats.reduce((sum, s) => sum + s.rate, 0) / stats.length);
+          document.getElementById('avgRate').textContent = avgRate + '%';
+        }
+        
+        // Show chart or no-stats message
+        if (stats.length > 0) {
+          document.getElementById('noStats').style.display = 'none';
+          document.getElementById('chart').style.display = 'block';
+          renderChart(stats);
+        } else {
+          document.getElementById('noStats').style.display = 'block';
+          document.getElementById('chart').style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Error loading stats:', e);
+      }
+    }
+    
+    // Render ECharts line chart
+    function renderChart(stats) {
+      const chartDom = document.getElementById('chart');
+      
+      // Sort by date
+      const sortedStats = [...stats].sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      // Determine display mode based on data range
+      const firstDate = new Date(sortedStats[0].date);
+      const lastDate = new Date(sortedStats[sortedStats.length - 1].date);
+      const dayRange = Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24));
+      
+      let labels = [];
+      let values = [];
+      let chartTitle = '';
+      
+      if (dayRange <= 31) {
+        // Daily view (within 1 month)
+        labels = sortedStats.map(s => {
+          const d = new Date(s.date);
+          return `${d.getMonth() + 1}/${d.getDate()}`;
+        });
+        values = sortedStats.map(s => s.rate);
+        chartTitle = '按日统计';
+      } else if (dayRange <= 365) {
+        // Monthly view (within 1 year)
+        const monthlyData = {};
+        sortedStats.forEach(s => {
+          const d = new Date(s.date);
+          const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+          if (!monthlyData[key]) {
+            monthlyData[key] = { sum: 0, count: 0 };
+          }
+          monthlyData[key].sum += s.rate;
+          monthlyData[key].count++;
+        });
+        
+        Object.keys(monthlyData).sort().forEach(key => {
+          const [year, month] = key.split('-');
+          labels.push(`${month}月`);
+          values.push(Math.round(monthlyData[key].sum / monthlyData[key].count));
+        });
+        chartTitle = '按月平均';
+      } else {
+        // Yearly view (more than 1 year)
+        const yearlyData = {};
+        sortedStats.forEach(s => {
+          const d = new Date(s.date);
+          const year = d.getFullYear();
+          if (!yearlyData[year]) {
+            yearlyData[year] = { sum: 0, count: 0 };
+          }
+          yearlyData[year].sum += s.rate;
+          yearlyData[year].count++;
+        });
+        
+        Object.keys(yearlyData).sort().forEach(year => {
+          labels.push(`${year}年`);
+          values.push(Math.round(yearlyData[year].sum / yearlyData[year].count));
+        });
+        chartTitle = '按年平均';
+      }
+      
+      // Update summary to show accurate count
+      document.getElementById('totalCount').textContent = sortedStats.length;
+      
+      if (!chartInstance) {
+        chartInstance = echarts.init(chartDom);
+      }
+      
+      const option = {
+        title: {
+          text: chartTitle,
+          left: 10,
+          top: 0,
+          textStyle: {
+            fontSize: 12,
+            fontWeight: 'normal',
+            color: '#666'
+          }
+        },
+        grid: {
+          left: 50,
+          right: 20,
+          top: 40,
+          bottom: 40
+        },
+        xAxis: {
+          type: 'category',
+          data: labels,
+          axisLine: { lineStyle: { color: '#e0e8e2' } },
+          axisLabel: { color: '#666', fontSize: 11 }
+        },
+        yAxis: {
+          type: 'value',
+          min: 0,
+          max: 100,
+          axisLine: { show: false },
+          axisLabel: { color: '#666', fontSize: 11, formatter: '{value}%' },
+          splitLine: { lineStyle: { color: '#f0f4f0' } }
+        },
+        series: [{
+          type: 'line',
+          data: values,
+          smooth: true,
+          symbol: values.length > 20 ? 'none' : 'circle',
+          symbolSize: 8,
+          lineStyle: { color: '#7cb08a', width: 3 },
+          itemStyle: { color: '#7cb08a' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(124, 176, 138, 0.3)' },
+                { offset: 1, color: 'rgba(124, 176, 138, 0.05)' }
+              ]
+            }
+          }
+        }],
+        tooltip: {
+          trigger: 'axis',
+          formatter: function(params) {
+            const p = params[0];
+            return `${p.name}<br/>正确率: <b>${p.value}%</b>`;
+          }
+        }
+      };
+      
+      chartInstance.setOption(option);
+    }
+    
+    // Resize chart on window resize
+    window.addEventListener('resize', function() {
+      if (chartInstance) {
+        chartInstance.resize();
+      }
+    });
+    
+    // ============ Export/Import ============
+    
+    function exportStats() {
+      try {
+        const saved = localStorage.getItem(STATS_KEY);
+        const stats = saved ? JSON.parse(saved) : [];
+        
+        if (stats.length === 0) {
+          alert('暂无数据可导出');
+          return;
+        }
+        
+        const exportData = {
+          version: 1,
+          exportDate: new Date().toISOString(),
+          stats: stats
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `nhk-stats-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('导出失败: ' + e.message);
+      }
+    }
+    
+    function importStats(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.stats || !Array.isArray(data.stats)) {
+            throw new Error('无效的数据格式');
+          }
+          
+          if (confirm(`确定要导入 ${data.stats.length} 条记录吗？\n现有数据会被合并（保留最高正确率）。`)) {
+            const saved = localStorage.getItem(STATS_KEY);
+            let existing = saved ? JSON.parse(saved) : [];
+            
+            // Merge: keep the better rate for same date
+            data.stats.forEach(newStat => {
+              const existIndex = existing.findIndex(s => s.date === newStat.date);
+              if (existIndex >= 0) {
+                if (newStat.rate > existing[existIndex].rate) {
+                  existing[existIndex] = newStat;
+                }
+              } else {
+                existing.push(newStat);
+              }
+            });
+            
+            localStorage.setItem(STATS_KEY, JSON.stringify(existing));
+            loadStats();
+            alert('导入成功！');
+          }
+        } catch (e) {
+          alert('导入失败: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    
+    function clearStats() {
+      if (confirm('确定要清理所有练习数据吗？此操作不可恢复。')) {
+        localStorage.removeItem(STATS_KEY);
+        loadStats();
+        alert('数据已清理');
+      }
+    }
+    
+    // ============ Storage Check ============
+    
+    function checkStorage() {
+      let totalSize = 0;
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          totalSize += localStorage[key].length + key.length;
+        }
+      }
+      
+      // localStorage limit is typically 5MB (5 * 1024 * 1024 bytes)
+      const maxSize = 5 * 1024 * 1024;
+      const usagePercent = (totalSize / maxSize) * 100;
+      
+      const warning = document.getElementById('storageWarning');
+      const barFill = document.getElementById('storageBarFill');
+      const warningText = document.getElementById('storageWarningText');
+      
+      if (usagePercent > 80) {
+        warning.classList.add('show');
+        barFill.style.width = usagePercent + '%';
+        barFill.classList.remove('warning');
+        barFill.classList.add('danger');
+        warningText.textContent = `存储空间使用 ${usagePercent.toFixed(1)}%，建议清理数据`;
+      } else if (usagePercent > 50) {
+        warning.classList.add('show');
+        barFill.style.width = usagePercent + '%';
+        barFill.classList.add('warning');
+        barFill.classList.remove('danger');
+        warningText.textContent = `存储空间使用 ${usagePercent.toFixed(1)}%`;
+      } else {
+        warning.classList.remove('show');
+      }
+    }
+    
+    // ============ Cloud Sync (GitHub Gist) ============
+    
+    const GIST_TOKEN_KEY = 'nhk_gist_token';
+    const GIST_ID_KEY = 'nhk_gist_id';
+    let currentGistId = null;
+    
+    function toggleCloudSync() {
+      const section = document.getElementById('cloudSync');
+      section.classList.toggle('show');
+    }
+    
+    function connectGist() {
+      const token = document.getElementById('gistToken').value.trim();
+      if (!token) {
+        alert('请输入 GitHub Personal Access Token');
+        return;
+      }
+      
+      // Test the token by creating a gist
+      fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          description: 'NHK Listening Stats Backup',
+          public: false,
+          files: {
+            'nhk-stats.json': {
+              content: JSON.stringify({ test: true })
+            }
+          }
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Token 无效或权限不足');
+        return res.json();
+      })
+      .then(data => {
+        localStorage.setItem(GIST_TOKEN_KEY, token);
+        localStorage.setItem(GIST_ID_KEY, data.id);
+        currentGistId = data.id;
+        updateCloudStatus(true, '已连接');
+        alert('连接成功！Gist ID: ' + data.id);
+      })
+      .catch(e => {
+        alert('连接失败: ' + e.message);
+      });
+    }
+    
+    function syncToGist() {
+      const token = localStorage.getItem(GIST_TOKEN_KEY);
+      const gistId = localStorage.getItem(GIST_ID_KEY);
+      
+      if (!token) {
+        alert('请先连接 GitHub Gist');
+        return;
+      }
+      
+      const saved = localStorage.getItem(STATS_KEY);
+      const stats = saved ? JSON.parse(saved) : [];
+      
+      const gistData = {
+        version: 1,
+        lastSync: new Date().toISOString(),
+        stats: stats
+      };
+      
+      const body = {
+        description: 'NHK Listening Stats Backup',
+        files: {
+          'nhk-stats.json': {
+            content: JSON.stringify(gistData, null, 2)
+          }
+        }
+      };
+      
+      if (gistId) {
+        // Update existing gist
+        fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('上传失败');
+          return res.json();
+        })
+        .then(() => {
+          alert('上传成功！');
+          updateCloudStatus(true, '已连接');
+        })
+        .catch(e => alert('上传失败: ' + e.message));
+      } else {
+        // Create new gist
+        fetch('https://api.github.com/gists', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('上传失败');
+          return res.json();
+        })
+        .then(data => {
+          localStorage.setItem(GIST_ID_KEY, data.id);
+          currentGistId = data.id;
+          alert('上传成功！Gist ID: ' + data.id);
+          updateCloudStatus(true, '已连接');
+        })
+        .catch(e => alert('上传失败: ' + e.message));
+      }
+    }
+    
+    function syncFromGist() {
+      const token = localStorage.getItem(GIST_TOKEN_KEY);
+      const gistId = localStorage.getItem(GIST_ID_KEY);
+      
+      if (!token || !gistId) {
+        alert('请先连接 GitHub Gist');
+        return;
+      }
+      
+      fetch(`https://api.github.com/gists/${gistId}`, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('获取失败');
+        return res.json();
+      })
+      .then(data => {
+        const content = data.files['nhk-stats.json'];
+        if (!content) throw new Error('未找到数据文件');
+        
+        const gistData = JSON.parse(content.content);
+        if (!gistData.stats) throw new Error('数据格式无效');
+        
+        if (confirm(`确定要下载 ${gistData.stats.length} 条记录吗？\n现有数据会被合并（保留最高正确率）。`)) {
+          const saved = localStorage.getItem(STATS_KEY);
+          let existing = saved ? JSON.parse(saved) : [];
+          
+          gistData.stats.forEach(newStat => {
+            const existIndex = existing.findIndex(s => s.date === newStat.date);
+            if (existIndex >= 0) {
+              if (newStat.rate > existing[existIndex].rate) {
+                existing[existIndex] = newStat;
+              }
+            } else {
+              existing.push(newStat);
+            }
+          });
+          
+          localStorage.setItem(STATS_KEY, JSON.stringify(existing));
+          loadStats();
+          alert('下载成功！');
+        }
+      })
+      .catch(e => alert('下载失败: ' + e.message));
+    }
+    
+    function disconnectGist() {
+      if (confirm('确定要断开云端同步吗？')) {
+        localStorage.removeItem(GIST_TOKEN_KEY);
+        localStorage.removeItem(GIST_ID_KEY);
+        currentGistId = null;
+        document.getElementById('gistToken').value = '';
+        updateCloudStatus(false, '未连接');
+        alert('已断开连接');
+      }
+    }
+    
+    function updateCloudStatus(connected, text) {
+      const status = document.getElementById('cloudStatus');
+      status.textContent = text;
+      status.classList.toggle('connected', connected);
+    }
+    
+    function initCloudSync() {
+      const token = localStorage.getItem(GIST_TOKEN_KEY);
+      const gistId = localStorage.getItem(GIST_ID_KEY);
+      
+      if (token && gistId) {
+        currentGistId = gistId;
+        document.getElementById('gistToken').value = token;
+        updateCloudStatus(true, '已连接');
+      }
+    }
+    
+    // Load on page ready
+    document.addEventListener('DOMContentLoaded', function() {
+      loadArticles();
+      loadStats();
+      checkStorage();
+      initCloudSync();
+    });
+  </script>
+</body>
+</html>

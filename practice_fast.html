@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>快速听力练习 - NHK Radio News</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #ff7043;
+      --primary-dark: #e64a19;
+      --bg: #f8faf7;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-light: #666666;
+      --border: #e0e8e2;
+      --success: #4caf50;
+      --warning: #ff9800;
+      --error: #f44336;
+      --mask-bg: rgba(255, 255, 255, 0.95);
+    }
+    
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.8;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    .back-btn:hover {
+      background: var(--bg);
+    }
+    
+    .header-title {
+      font-size: 16px;
+      font-weight: 500;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .level-switcher {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    
+    .level-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      color: var(--text-light);
+    }
+    
+    .level-btn.active {
+      background: var(--card-bg);
+      color: var(--primary-dark);
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .level-btn.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 24px 0;
+    }
+    
+    .article-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .audio-player {
+      width: 100%;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+      padding: 16px;
+    }
+    
+    .audio-player audio {
+      width: 100%;
+      height: 40px;
+    }
+    
+    .main-content {
+      padding: 24px 0;
+    }
+    
+    /* Mode Selector */
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      padding: 8px;
+      border-radius: 12px;
+    }
+    
+    .mode-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-light);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .mode-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    /* Local Upload Area */
+    .upload-area {
+      background: var(--card-bg);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary);
+      background: #fff8f6;
+    }
+    
+    .upload-area.dragover {
+      border-color: var(--primary);
+      background: #fff3e0;
+    }
+    
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .upload-text {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    
+    .upload-hint {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .upload-input {
+      display: none;
+    }
+    
+    .local-audio-info {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .local-audio-info .icon {
+      font-size: 24px;
+    }
+    
+    .local-audio-info .info {
+      flex: 1;
+    }
+    
+    .local-audio-info .filename {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .local-audio-info .meta {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .local-audio-info .remove-btn {
+      padding: 8px 12px;
+      border: none;
+      background: var(--bg);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    
+    .local-audio-info .remove-btn:hover {
+      background: var(--border);
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal-overlay.hidden {
+      display: none;
+    }
+    
+    .modal {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: auto;
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .modal-header h2 {
+      font-size: 18px;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .modal-body label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    
+    .modal-body textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      line-height: 1.8;
+    }
+    
+    .modal-body textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    
+    /* Exercise Area */
+    .exercise-area {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .sentence-block {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    .sentence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .sentence-number {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    
+    .sentence-number .num {
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .sentence-number .status {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    
+    .status-pending {
+      background: var(--bg);
+      color: var(--text-light);
+    }
+    
+    .status-correct {
+      background: #e8f5e9;
+      color: var(--success);
+    }
+    
+    .status-similar {
+      background: #fff3e0;
+      color: var(--warning);
+    }
+    
+    .status-wrong {
+      background: #ffebee;
+      color: var(--error);
+    }
+    
+    .mask-overlay {
+      background: var(--mask-bg);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+      color: var(--text-light);
+      user-select: none;
+    }
+    
+    .mask-overlay:hover {
+      background: rgba(255, 255, 255, 0.85);
+    }
+    
+    .mask-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.95);
+    }
+    
+    .text-content {
+      display: none;
+      font-size: 18px;
+      line-height: 2;
+      padding: 8px 0;
+    }
+    
+    .input-area {
+      margin-top: 16px;
+    }
+    
+    .user-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      background: var(--card-bg);
+    }
+    
+    .user-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .user-input.correct {
+      border-color: var(--success);
+      background: #f1f8f1;
+    }
+    
+    .user-input.similar {
+      border-color: var(--warning);
+      background: #fffbf5;
+    }
+    
+    .user-input.wrong {
+      border-color: var(--error);
+      background: #fff8f8;
+    }
+    
+    .input-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .feedback {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .feedback.show {
+      display: block;
+    }
+    
+    .feedback.correct {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .feedback.similar {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    
+    .feedback.wrong {
+      background: #ffebee;
+      color: #c62828;
+    }
+    
+    .translation-section {
+      margin-top: 20px;
+    }
+    
+    .translation-mask {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--text-light);
+      transition: all 0.3s;
+    }
+    
+    .translation-mask:hover {
+      background: #f5f5f5;
+    }
+    
+    .translation-mask.hidden {
+      display: none;
+    }
+    
+    .translation-text {
+      display: none;
+      font-size: 14px;
+      color: var(--text);
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    
+    .translation-text.show {
+      display: block;
+    }
+    
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .nav-buttons .btn {
+      flex: 1;
+    }
+    
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 16px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 48px;
+    }
+    
+    .error-message {
+      text-align: center;
+      padding: 48px;
+      color: var(--error);
+    }
+    
+    .no-text-warning {
+      background: #fff3e0;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+    
+    .no-text-warning h3 {
+      color: var(--warning);
+      margin-bottom: 12px;
+    }
+    
+    .no-text-warning p {
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+    
+    .welcome-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+    
+    .welcome-box h3 {
+      margin-bottom: 12px;
+    }
+    
+    .welcome-box p {
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-light);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+    
+    footer a {
+      color: var(--primary-dark);
+      text-decoration: none;
+    }
+    
+    .mode-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    
+    .mode-badge.online {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+    
+    .mode-badge.local {
+      background: #f3e5f5;
+      color: #7b1fa2;
+    }
+    
+    @media (max-width: 480px) {
+      .header-title {
+        font-size: 14px;
+      }
+      
+      .level-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      
+      .article-title {
+        font-size: 18px;
+      }
+      
+      .text-content {
+        font-size: 16px;
+      }
+      
+      .stats-bar {
+        gap: 16px;
+      }
+      
+      .stat-value {
+        font-size: 20px;
+      }
+      
+      .mode-tabs {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index_fast.html" class="back-btn">
+        ← 返回
+      </a>
+      <div class="header-title" id="headerTitle">快速听力</div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-small" onclick="openTextModal()">📝 文字</button>
+        <div class="level-switcher">
+          <button class="level-btn" data-level="beginner">初级</button>
+          <button class="level-btn" data-level="intermediate">中级</button>
+          <button class="level-btn" data-level="advanced">高级</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <section class="hero">
+    <div class="container">
+      <h1 class="article-title" id="articleTitle">快速听力练习</h1>
+      <div class="audio-player">
+        <audio id="audioPlayer" controls controlsList="nodownload">
+          <source id="audioSource" type="audio/mpeg">
+          您的浏览器不支持音频播放
+        </audio>
+      </div>
+    </div>
+  </section>
+  
+  <main class="container main-content">
+    <!-- Mode Selector -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="online" onclick="switchMode('online')">
+        📻 NHK广播
+      </button>
+      <button class="mode-tab" data-mode="local" onclick="switchMode('local')">
+        💾 本地音频
+      </button>
+    </div>
+    
+    <!-- Local Audio Upload Area -->
+    <div class="upload-area" id="uploadArea" style="display: none;" onclick="document.getElementById('fileInput').click()">
+      <div class="upload-icon">🎵</div>
+      <div class="upload-text">点击上传本地音频文件</div>
+      <div class="upload-hint">支持 MP3, WAV, M4A, AAC 等格式</div>
+      <input type="file" id="fileInput" class="upload-input" accept="audio/*" onchange="handleFileUpload(event)">
+    </div>
+    
+    <!-- Local Audio Info -->
+    <div class="local-audio-info" id="localAudioInfo" style="display: none;">
+      <div class="icon">🎧</div>
+      <div class="info">
+        <div class="filename" id="localFilename">audio.mp3</div>
+        <div class="meta" id="localMeta">本地音频</div>
+      </div>
+      <button class="remove-btn" onclick="removeLocalAudio()">✕ 移除</button>
+    </div>
+    
+    <!-- Text Input Modal -->
+    <div class="modal-overlay hidden" id="textModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>📝 输入日文文字</h2>
+          <button class="modal-close" onclick="closeTextModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <label for="textInput">粘贴或输入日文文字：</label>
+          <textarea id="textInput" placeholder="在这里粘贴日文文字..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeTextModal()">取消</button>
+          <button class="btn btn-primary" onclick="saveTextContent()">确认并开始练习</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="loadingState" class="loading">
+      <p>加载中...</p>
+    </div>
+    
+    <div id="welcomeState" class="welcome-box" style="display: none;">
+      <span class="mode-badge online" id="modeBadge">📻 NHK广播</span>
+      <h3 id="welcomeTitle">欢迎开始练习</h3>
+      <p id="welcomeDesc">请先输入日文文字，然后开始听写练习</p>
+      <button class="btn btn-primary" onclick="openTextModal()">📝 输入文字</button>
+    </div>
+    
+    <div id="noTextState" class="no-text-warning" style="display: none;">
+      <h3>⚠️ 暂无文字内容</h3>
+      <p>请点击"📝 文字"按钮，粘贴或输入日文文字后开始练习</p>
+      <button class="btn btn-primary" onclick="openTextModal()">📝 输入文字</button>
+    </div>
+    
+    <div id="errorState" class="error-message" style="display: none;">
+      <p id="errorText"></p>
+      <p style="margin-top: 12px;">
+        <a href="index_fast.html" class="btn btn-secondary">返回列表</a>
+      </p>
+    </div>
+    
+    <div id="exerciseContent" style="display: none;">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value" id="correctCount">0</div>
+          <div class="stat-label">✓ 正确</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="similarCount">0</div>
+          <div class="stat-label">~ 相似</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="remainingCount">0</div>
+          <div class="stat-label">○ 待完成</div>
+        </div>
+      </div>
+      
+      <div class="exercise-area" id="exerciseArea"></div>
+      
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" id="prevBtn" onclick="navigateSentence(-1)">← 上一句</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="navigateSentence(1)">下一句 →</button>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <p>音频来源: <a href="https://www.nhk.or.jp/radionews/" target="_blank">NHK Radio News</a></p>
+  </footer>
+  
+  <script>
+    // Global state
+    let currentMode = 'online';  // 'online' or 'local'
+    let currentArticle = null;
+    let currentLevel = 'beginner';
+    let currentSentenceIndex = 0;
+    let sentenceStates = [];
+    let localAudioBlob = null;
+    let localAudioName = '';
+    
+    // Storage keys
+    const TEXT_STORAGE_KEY = 'nhk_radio_text_content';
+    const LOCAL_TEXT_KEY = 'nhk_local_text_content';
+    
+    // Level progression system (only for online mode)
+    const STEPS_TO_UNLOCK = 5;
+    let consecutiveCorrect = { beginner: 0, intermediate: 0, advanced: 0 };
+    let levelLocks = { beginner: false, intermediate: true, advanced: true };
+    
+    // ============ Mode Switching ============
+    
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      // Update tabs
+      document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+      });
+      
+      // Update upload area visibility
+      document.getElementById('uploadArea').style.display = mode === 'local' ? 'block' : 'none';
+      
+      // Update mode badge
+      const badge = document.getElementById('modeBadge');
+      if (mode === 'online') {
+        badge.className = 'mode-badge online';
+        badge.textContent = '📻 NHK广播';
+      } else {
+        badge.className = 'mode-badge local';
+        badge.textContent = '💾 本地音频';
+      }
+      
+      // Load content for this mode
+      loadContent();
+    }
+    
+    // ============ Local Audio Handling ============
+    
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      localAudioName = file.name;
+      localAudioBlob = URL.createObjectURL(file);
+      
+      // Update audio player
+      document.getElementById('audioSource').src = localAudioBlob;
+      document.getElementById('audioPlayer').load();
+      
+      // Update UI
+      document.getElementById('uploadArea').style.display = 'none';
+      document.getElementById('localAudioInfo').style.display = 'flex';
+      document.getElementById('localFilename').textContent = localAudioName;
+      document.getElementById('localMeta').textContent = formatFileSize(file.size);
+      
+      // Update header
+      document.getElementById('headerTitle').textContent = localAudioName.substring(0, 20);
+      document.getElementById('articleTitle').textContent = '本地音频: ' + localAudioName;
+      
+      // Load stored text for local mode
+      loadContent();
+    }
+    
+    function removeLocalAudio() {
+      if (localAudioBlob) {
+        URL.revokeObjectURL(localAudioBlob);
+      }
+      localAudioBlob = null;
+      localAudioName = '';
+      
+      document.getElementById('fileInput').value = '';
+      document.getElementById('uploadArea').style.display = 'block';
+      document.getElementById('localAudioInfo').style.display = 'none';
+      document.getElementById('headerTitle').textContent = '快速听力';
+      document.getElementById('articleTitle').textContent = '快速听力练习';
+      
+      showWelcome();
+    }
+    
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+    
+    // Drag and drop support
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('audio/')) {
+        document.getElementById('fileInput').files = e.dataTransfer.files;
+        handleFileUpload({ target: { files: [file] } });
+      }
+    });
+    
+    // ============ Text Content Management ============
+    
+    function getArticleId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id') || 'local';
+    }
+    
+    function getStoredText() {
+      const key = currentMode === 'local' ? LOCAL_TEXT_KEY : TEXT_STORAGE_KEY;
+      const id = getArticleId();
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const data = JSON.parse(saved);
+          return data[id] || null;
+        }
+      } catch (e) {}
+      return null;
+    }
+    
+    function saveTextToStorage(articleId, text) {
+      const key = currentMode === 'local' ? LOCAL_TEXT_KEY : TEXT_STORAGE_KEY;
+      try {
+        const saved = localStorage.getItem(key);
+        const data = saved ? JSON.parse(saved) : {};
+        data[articleId] = text;
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {}
+    }
+    
+    // ============ Text Splitting ============
+    
+    function splitSentences(text) {
+      if (!text) return [];
+      const parts = text.split(/([。！？])/);
+      const sentences = [];
+      for (let i = 0; i < parts.length - 1; i += 2) {
+        const sentence = (parts[i] + parts[i + 1]).trim();
+        if (sentence) sentences.push(sentence);
+      }
+      if (parts.length % 2 === 1 && parts[parts.length - 1].trim()) {
+        sentences.push(parts[parts.length - 1].trim());
+      }
+      return sentences;
+    }
+    
+    function splitByComma(text) {
+      if (!text) return [];
+      const parts = text.split(/([、])/);
+      const sentences = [];
+      for (let i = 0; i < parts.length - 1; i += 2) {
+        const sentence = (parts[i] + parts[i + 1]).trim();
+        if (sentence) sentences.push(sentence);
+      }
+      if (parts.length % 2 === 1 && parts[parts.length - 1].trim()) {
+        sentences.push(parts[parts.length - 1].trim());
+      }
+      return sentences;
+    }
+    
+    function splitByParagraph(text) {
+      if (!text) return [];
+      return text.split(/\n\s*\n/).filter(p => p.trim());
+    }
+    
+    // ============ Modal Functions ============
+    
+    function openTextModal() {
+      const modal = document.getElementById('textModal');
+      const textarea = document.getElementById('textInput');
+      const stored = getStoredText();
+      textarea.value = stored || '';
+      modal.classList.remove('hidden');
+    }
+    
+    function closeTextModal() {
+      document.getElementById('textModal').classList.add('hidden');
+    }
+    
+    function saveTextContent() {
+      const textarea = document.getElementById('textInput');
+      const text = textarea.value.trim();
+      
+      if (!text) {
+        alert('请输入日文文字');
+        return;
+      }
+      
+      const articleId = getArticleId();
+      saveTextToStorage(articleId, text);
+      
+      closeTextModal();
+      processTextAndShow(text);
+    }
+    
+    function processTextAndShow(text) {
+      // 初级和中级的分割方式统一改为按整句（「。」）分割
+      // 避免因日语中文语序差异导致翻译不完整
+      currentArticle = {
+        text: text,
+        sentences_beginner: splitSentences(text),  // 初级：按整句分割
+        sentences_intermediate: splitSentences(text),  // 中级：按整句分割
+        sentences_advanced: splitByParagraph(text),  // 高级：按段落分割
+        translations: []
+      };
+      
+      initSentences();
+      document.getElementById('welcomeState').style.display = 'none';
+      document.getElementById('noTextState').style.display = 'none';
+      document.getElementById('exerciseContent').style.display = 'block';
+      renderSentence(0);
+    }
+    
+    // ============ Progress System ============
+    
+    function loadProgress() {
+      // Only load progress for online mode
+      if (currentMode !== 'online') return;
+      
+      try {
+        const saved = localStorage.getItem('nhk_radio_level_progress');
+        if (saved) {
+          const data = JSON.parse(saved);
+          levelLocks = data.levelLocks || levelLocks;
+          consecutiveCorrect = data.consecutiveCorrect || consecutiveCorrect;
+        }
+      } catch (e) {}
+    }
+    
+    function saveProgress() {
+      // Only save progress for online mode
+      if (currentMode !== 'online') return;
+      
+      try {
+        localStorage.setItem('nhk_radio_level_progress', JSON.stringify({
+          levelLocks,
+          consecutiveCorrect
+        }));
+      } catch (e) {}
+    }
+    
+    function isLevelUnlocked(level) {
+      // Local mode: no locks
+      if (currentMode === 'local') return true;
+      return !levelLocks[level];
+    }
+    
+    function onLevelCompleted(level, isCorrectOrSimilar) {
+      // Only track progress for online mode
+      if (currentMode === 'local') return;
+      if (!isLevelUnlocked(level)) return;
+      
+      if (isCorrectOrSimilar) {
+        consecutiveCorrect[level]++;
+        if (consecutiveCorrect[level] >= STEPS_TO_UNLOCK) {
+          if (level === 'beginner') {
+            levelLocks['intermediate'] = false;
+            consecutiveCorrect['intermediate'] = 0;
+          } else if (level === 'intermediate') {
+            levelLocks['advanced'] = false;
+            consecutiveCorrect['advanced'] = 0;
+          }
+          consecutiveCorrect[level] = 0;
+          updateLevelButtons();
+        }
+      } else {
+        consecutiveCorrect[level] = 0;
+      }
+      saveProgress();
+    }
+    
+    // ============ Page Initialization ============
+    
+    async function init() {
+      const loadingState = document.getElementById('loadingState');
+      
+      // Check for mode in URL
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
+      if (mode === 'local') {
+        switchMode('local');
+      } else {
+        switchMode('online');
+      }
+      
+      // Load online content if available
+      loadProgress();
+      
+      // Try to load NHK Radio News data
+      try {
+        const response = await fetch('articles_nhk_radio.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length > 0) {
+            const article = data[0];
+            document.getElementById('headerTitle').textContent = article.title.substring(0, 20) + '...';
+            document.getElementById('articleTitle').textContent = article.title;
+            
+            if (article.mp3_url) {
+              document.getElementById('audioSource').src = article.mp3_url;
+              document.getElementById('audioPlayer').load();
+            }
+            
+            currentArticle = article;
+          }
+        }
+      } catch (e) {
+        console.log('Could not load NHK Radio News data');
+      }
+      
+      loadingState.style.display = 'none';
+      loadContent();
+    }
+    
+    function loadContent() {
+      const stored = getStoredText();
+      if (stored) {
+        processTextAndShow(stored);
+      } else {
+        showWelcome();
+      }
+    }
+    
+    function showWelcome() {
+      document.getElementById('exerciseContent').style.display = 'none';
+      document.getElementById('noTextState').style.display = 'none';
+      document.getElementById('welcomeState').style.display = 'block';
+      
+      if (currentMode === 'local') {
+        document.getElementById('welcomeTitle').textContent = '本地音频已加载';
+        document.getElementById('welcomeDesc').textContent = '请输入日文文字，然后开始听写练习';
+      } else {
+        document.getElementById('welcomeTitle').textContent = '欢迎开始练习';
+        document.getElementById('welcomeDesc').textContent = '请输入日文文字，然后开始听写练习';
+      }
+    }
+    
+    function initSentences() {
+      const sentences = getSentences(currentLevel);
+      sentenceStates = sentences.map(() => ({ status: 'pending', input: '' }));
+      currentSentenceIndex = 0;
+      updateStats();
+    }
+    
+    function getSentences(level) {
+      if (!currentArticle) return [];
+      return currentArticle[`sentences_${level}`] || currentArticle.sentences_beginner || [];
+    }
+    
+    function updateLevelButtons() {
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        const level = btn.dataset.level;
+        const unlocked = isLevelUnlocked(level);
+        btn.classList.toggle('active', level === currentLevel);
+        btn.classList.toggle('locked', !unlocked && currentMode === 'online');
+        
+        if (level === 'beginner') {
+          btn.innerHTML = '初级';
+        } else if (level === 'intermediate') {
+          btn.innerHTML = unlocked ? '中级' : '中级 🔒';
+        } else if (level === 'advanced') {
+          btn.innerHTML = unlocked ? '高级' : '高级 🔒';
+        }
+      });
+    }
+    
+    document.querySelectorAll('.level-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const level = btn.dataset.level;
+        
+        // Check lock (only for online mode)
+        if (currentMode === 'online' && levelLocks[level]) {
+          if (level === 'intermediate') {
+            alert('🔒 中级尚未解锁\n需要初级连续5次达到95%以上正确率！\n当前进度：' + consecutiveCorrect['beginner'] + '/5');
+          } else if (level === 'advanced') {
+            alert('🔒 高级尚未解锁\n需要中级连续5次达到95%以上正确率！\n当前进度：' + consecutiveCorrect['intermediate'] + '/5');
+          }
+          return;
+        }
+        
+        currentLevel = level;
+        updateLevelButtons();
+        initSentences();
+        
+        const url = new URL(window.location);
+        url.searchParams.set('level', currentLevel);
+        window.history.replaceState({}, '', url);
+        
+        const sentences = getSentences(currentLevel);
+        if (sentences.length > 0) {
+          renderSentence(0);
+        }
+      });
+    });
+    
+    // ============ Render & Navigation ============
+    
+    function renderSentence(index) {
+      const sentences = getSentences(currentLevel);
+      if (index < 0 || index >= sentences.length) return;
+      
+      currentSentenceIndex = index;
+      const sentence = sentences[index];
+      const state = sentenceStates[index];
+      
+      const exerciseArea = document.getElementById('exerciseArea');
+      
+      let html = `
+        <div class="sentence-block">
+          <div class="sentence-header">
+            <div class="sentence-number">
+              <span class="num">${index + 1}</span>
+              <span class="status status-${state.status}">${getStatusText(state.status)}</span>
+            </div>
+          </div>
+          
+          <div class="mask-overlay ${state.status !== 'pending' ? 'hidden' : ''}" onclick="revealText()">
+            <div>点击显示原文</div>
+            <div class="mask-hint">听写完成后点击查看</div>
+          </div>
+          
+          <div class="text-content" style="${state.status !== 'pending' ? 'display: block;' : ''}">
+            ${escapeHtml(sentence)}
+          </div>
+          
+          <div class="input-area">
+            <input 
+              type="text" 
+              class="user-input ${state.status !== 'pending' ? state.status : ''}" 
+              id="userInput"
+              value="${escapeHtml(state.input)}"
+              placeholder="请输入日文..."
+              ${state.status === 'correct' || state.status === 'similar' ? 'disabled' : ''}
+              onkeydown="handleKeyDown(event)"
+            >
+            <div class="input-actions">
+              <button class="btn btn-primary" id="submitBtn" onclick="checkAnswer()" ${state.status === 'correct' || state.status === 'similar' ? 'disabled' : ''}>
+                判定
+              </button>
+              <button class="btn btn-secondary" onclick="resetInput()">重置</button>
+            </div>
+            <div class="feedback" id="feedback"></div>
+          </div>
+        </div>
+      `;
+      
+      exerciseArea.innerHTML = html;
+      updateNavButtons();
+      
+      const input = document.getElementById('userInput');
+      if (input && state.status === 'pending') {
+        setTimeout(() => input.focus(), 100);
+      }
+    }
+    
+    function revealText() {
+      const mask = document.querySelector('.mask-overlay');
+      const text = document.querySelector('.text-content');
+      if (mask) mask.classList.add('hidden');
+      if (text) text.style.display = 'block';
+    }
+    
+    function handleKeyDown(event) {
+      if (event.key === 'Enter') {
+        checkAnswer();
+      }
+    }
+    
+    function checkAnswer() {
+      const input = document.getElementById('userInput');
+      const feedback = document.getElementById('feedback');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      if (!input || !feedback) return;
+      
+      const userAnswer = input.value.trim();
+      const sentences = getSentences(currentLevel);
+      const correctAnswer = stripHtml(sentences[currentSentenceIndex]);
+      
+      const normalizedUser = normalizeText(userAnswer);
+      const normalizedCorrect = normalizeText(correctAnswer);
+      
+      let result;
+      if (normalizedUser === normalizedCorrect) {
+        result = 'correct';
+      } else if (calculateSimilarity(normalizedUser, normalizedCorrect) >= 85) {
+        result = 'similar';
+      } else {
+        result = 'wrong';
+      }
+      
+      sentenceStates[currentSentenceIndex] = {
+        status: result,
+        input: userAnswer
+      };
+      
+      input.classList.remove('correct', 'similar', 'wrong');
+      input.classList.add(result);
+      input.disabled = result !== 'wrong';
+      
+      feedback.className = `feedback show ${result}`;
+      if (result === 'correct') {
+        feedback.innerHTML = '✓ 完全正确！';
+        onLevelCompleted(currentLevel, true);
+      } else if (result === 'similar') {
+        feedback.innerHTML = `~ 相似度较高！<br><span style="font-size: 12px;">正确答案: ${escapeHtml(correctAnswer)}</span>`;
+        onLevelCompleted(currentLevel, true);
+      } else {
+        feedback.innerHTML = `✗ 再试一次<br><span style="font-size: 12px;">正确答案: ${escapeHtml(correctAnswer)}</span>`;
+        onLevelCompleted(currentLevel, false);
+      }
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+      
+      const statusBadge = document.querySelector('.sentence-number .status');
+      if (statusBadge) {
+        statusBadge.className = `status status-${result}`;
+        statusBadge.textContent = getStatusText(result);
+      }
+      
+      updateStats();
+    }
+    
+    function resetInput() {
+      const input = document.getElementById('userInput');
+      const feedback = document.getElementById('feedback');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      if (input) {
+        input.value = '';
+        input.disabled = false;
+        input.classList.remove('correct', 'similar', 'wrong');
+        input.focus();
+      }
+      
+      if (feedback) {
+        feedback.className = 'feedback';
+      }
+      
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
+      
+      sentenceStates[currentSentenceIndex] = { status: 'pending', input: '' };
+      
+      const statusBadge = document.querySelector('.sentence-number .status');
+      if (statusBadge) {
+        statusBadge.className = 'status status-pending';
+        statusBadge.textContent = '待完成';
+      }
+      
+      updateStats();
+    }
+    
+    function navigateSentence(direction) {
+      const sentences = getSentences(currentLevel);
+      const newIndex = currentSentenceIndex + direction;
+      
+      // Check if can go next (must pass current first) - only for online mode
+      if (direction === 1 && currentMode === 'online' && currentSentenceIndex < sentences.length - 1) {
+        const currentState = sentenceStates[currentSentenceIndex];
+        if (currentState.status !== 'correct' && currentState.status !== 'similar') {
+          alert('请先完成当前句子的练习！');
+          return;
+        }
+      }
+      
+      if (newIndex >= 0 && newIndex < sentences.length) {
+        renderSentence(newIndex);
+      }
+    }
+    
+    function updateNavButtons() {
+      const sentences = getSentences(currentLevel);
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      
+      if (prevBtn) {
+        prevBtn.disabled = currentSentenceIndex === 0;
+      }
+      
+      if (nextBtn) {
+        nextBtn.disabled = currentSentenceIndex === sentences.length - 1;
+      }
+    }
+    
+    function updateStats() {
+      const correct = sentenceStates.filter(s => s.status === 'correct').length;
+      const similar = sentenceStates.filter(s => s.status === 'similar').length;
+      const remaining = sentenceStates.filter(s => s.status === 'pending').length;
+      
+      document.getElementById('correctCount').textContent = correct;
+      document.getElementById('similarCount').textContent = similar;
+      document.getElementById('remainingCount').textContent = remaining;
+      
+      // Check if all sentences completed, then save stats
+      if (remaining === 0 && sentenceStates.length > 0) {
+        savePracticeStats(correct, similar);
+      }
+    }
+    
+    // Save practice stats to localStorage
+    function savePracticeStats(correct, similar) {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const total = correct + similar;
+      const rate = Math.round((correct / sentenceStates.length) * 100);
+      
+      // Determine practice type
+      const type = currentMode === 'local' ? '本地音频' : (currentArticle?.mp3_url ? '快速听力' : '未知');
+      
+      try {
+        const saved = localStorage.getItem('nhk_listening_stats');
+        let stats = saved ? JSON.parse(saved) : [];
+        
+        // Check if already have stats for today
+        const todayIndex = stats.findIndex(s => s.date === today);
+        
+        if (todayIndex >= 0) {
+          // Update today's stats (keep the better rate)
+          if (rate > stats[todayIndex].rate) {
+            stats[todayIndex] = {
+              date: today,
+              rate: rate,
+              type: type,
+              timestamp: Date.now()
+            };
+          }
+        } else {
+          // Add new stats
+          stats.push({
+            date: today,
+            rate: rate,
+            type: type,
+            timestamp: Date.now()
+          });
+        }
+        
+        // Keep only last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        stats = stats.filter(s => new Date(s.date) >= thirtyDaysAgo);
+        
+        localStorage.setItem('nhk_listening_stats', JSON.stringify(stats));
+      } catch (e) {
+        console.error('Error saving stats:', e);
+      }
+    }
+    
+    // ============ Utility Functions ============
+    
+    function stripHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || div.innerText || '';
+    }
+    
+    function normalizeText(text) {
+      return text.replace(/\s+/g, '').toLowerCase();
+    }
+    
+    function calculateSimilarity(str1, str2) {
+      if (!str1 && !str2) return 100;
+      if (!str1 || !str2) return 0;
+      
+      const len1 = str1.length;
+      const len2 = str2.length;
+      
+      const matrix = [];
+      for (let i = 0; i <= len1; i++) {
+        matrix[i] = [i];
+      }
+      for (let j = 0; j <= len2; j++) {
+        matrix[0][j] = j;
+      }
+      
+      for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+          const cost = str1[i-1] === str2[j-1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i-1][j] + 1,
+            matrix[i][j-1] + 1,
+            matrix[i-1][j-1] + cost
+          );
+        }
+      }
+      
+      const distance = matrix[len1][len2];
+      const maxLen = Math.max(len1, len2);
+      return Math.round((1 - distance / maxLen) * 100);
+    }
+    
+    function getStatusText(status) {
+      const texts = {
+        pending: '待完成',
+        correct: '正确',
+        similar: '相似',
+        wrong: '错误'
+      };
+      return texts[status] || status;
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Close modal on outside click
+    document.getElementById('textModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeTextModal();
+      }
+    });
+    
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
