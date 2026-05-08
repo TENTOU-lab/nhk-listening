@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>听写练习 - NHKListening</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #7cb08a;
+      --primary-dark: #5a8a66;
+      --bg: #f8faf7;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-light: #666666;
+      --border: #e0e8e2;
+      --success: #4caf50;
+      --warning: #ff9800;
+      --error: #f44336;
+      --mask-bg: rgba(255, 255, 255, 0.95);
+    }
+    
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.8;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    .back-btn:hover {
+      background: var(--bg);
+    }
+    
+    .header-title {
+      font-size: 16px;
+      font-weight: 500;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .level-switcher {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    
+    .level-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      color: var(--text-light);
+    }
+    
+    .level-btn.active {
+      background: var(--card-bg);
+      color: var(--primary-dark);
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .level-btn.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .level-btn.locked:hover {
+      opacity: 0.5;
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 24px 0;
+    }
+    
+    .article-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .audio-player {
+      width: 100%;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+      padding: 16px;
+    }
+    
+    .audio-player audio {
+      width: 100%;
+      height: 40px;
+    }
+    
+    .audio-player audio::-webkit-media-controls-panel {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: white;
+      width: 0%;
+      transition: width 0.1s;
+    }
+    
+    .main-content {
+      padding: 24px 0;
+    }
+    
+    .exercise-area {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .sentence-block {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    .sentence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .sentence-number {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    
+    .sentence-number .num {
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .sentence-number .status {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    
+    .status-pending {
+      background: var(--bg);
+      color: var(--text-light);
+    }
+    
+    .status-correct {
+      background: #e8f5e9;
+      color: var(--success);
+    }
+    
+    .status-similar {
+      background: #fff3e0;
+      color: var(--warning);
+    }
+    
+    .status-wrong {
+      background: #ffebee;
+      color: var(--error);
+    }
+    
+    .mask-overlay {
+      background: var(--mask-bg);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+      color: var(--text-light);
+      user-select: none;
+    }
+    
+    .mask-overlay:hover {
+      background: rgba(255, 255, 255, 0.85);
+    }
+    
+    .mask-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.95);
+    }
+    
+    .mask-hint {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    
+    .text-content {
+      display: none;
+      font-size: 18px;
+      line-height: 2;
+      padding: 8px 0;
+    }
+    
+    .text-content ruby {
+      ruby-position: over;
+    }
+    
+    .text-content ruby rt {
+      font-size: 12px;
+      color: var(--primary-dark);
+      font-weight: normal;
+    }
+    
+    .input-area {
+      margin-top: 16px;
+    }
+    
+    .user-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      background: var(--card-bg);
+    }
+    
+    .user-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .user-input.correct {
+      border-color: var(--success);
+      background: #f1f8f1;
+    }
+    
+    .user-input.similar {
+      border-color: var(--warning);
+      background: #fffbf5;
+    }
+    
+    .user-input.wrong {
+      border-color: var(--error);
+      background: #fff8f8;
+    }
+    
+    .input-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .btn-primary:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+    
+    .feedback {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .feedback.show {
+      display: block;
+    }
+    
+    .feedback.correct {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .feedback.similar {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    
+    .feedback.wrong {
+      background: #ffebee;
+      color: #c62828;
+    }
+    
+    .translation-section {
+      margin-top: 20px;
+    }
+    
+    .translation-mask {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--text-light);
+      transition: all 0.3s;
+    }
+    
+    .translation-mask:hover {
+      background: #f5f5f5;
+    }
+    
+    .translation-mask.hidden {
+      display: none;
+    }
+    
+    .translation-text {
+      display: none;
+      font-size: 14px;
+      color: var(--text);
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    
+    .translation-text.show {
+      display: block;
+    }
+    
+    /* 翻译练习模式 */
+    .mode-switcher {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+    }
+    
+    .mode-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      color: var(--text-light);
+    }
+    
+    .mode-btn.active {
+      background: var(--card-bg);
+      color: var(--primary-dark);
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    /* 翻译输入区域 */
+    .translation-input-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+    
+    .translation-input-label {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    
+    .translation-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      background: var(--card-bg);
+    }
+    
+    .translation-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .translation-input.correct {
+      border-color: var(--success);
+      background: #e8f5e9;
+    }
+    
+    .translation-input.similar {
+      border-color: var(--warning);
+      background: #fff3e0;
+    }
+    
+    .translation-input.wrong {
+      border-color: var(--error);
+      background: #ffebee;
+    }
+    
+    .translation-feedback {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .translation-feedback.show {
+      display: block;
+    }
+    
+    .translation-feedback.correct {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .translation-feedback.similar {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    
+    .translation-feedback.wrong {
+      background: #ffebee;
+      color: #c62828;
+    }
+    
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .nav-buttons .btn {
+      flex: 1;
+    }
+    
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 16px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 48px;
+    }
+    
+    .error-message {
+      text-align: center;
+      padding: 48px;
+      color: var(--error);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-light);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+    
+    @media (max-width: 480px) {
+      .header-title {
+        font-size: 14px;
+      }
+      
+      .level-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      
+      .article-title {
+        font-size: 18px;
+      }
+      
+      .text-content {
+        font-size: 16px;
+      }
+      
+      .stats-bar {
+        gap: 16px;
+      }
+      
+      .stat-value {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <a href="index.html" class="back-btn">
+        ← 返回
+      </a>
+      <div class="header-title" id="headerTitle">加载中...</div>
+      <div class="header-actions">
+        <div class="mode-switcher" id="modeSwitcher">
+          <button class="mode-btn active" data-mode="listen" onclick="switchPracticeMode('listen')">🎧 听力</button>
+          <button class="mode-btn" data-mode="translate" onclick="switchPracticeMode('translate')">📖 翻译</button>
+        </div>
+        <div class="level-switcher">
+          <button class="level-btn" data-level="beginner">初级</button>
+          <button class="level-btn" data-level="intermediate">中级</button>
+          <button class="level-btn" data-level="advanced">高级</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <section class="hero">
+    <div class="container">
+      <h1 class="article-title" id="articleTitle"></h1>
+      <div class="audio-player">
+        <audio id="audioPlayer" controls controlsList="nodownload">
+          <source id="audioSource" type="audio/mpeg">
+          您的浏览器不支持音频播放
+        </audio>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <main class="container main-content">
+    <div id="loadingState" class="loading">
+      <p>加载练习内容...</p>
+    </div>
+    
+    <div id="errorState" class="error-message" style="display: none;">
+      <p id="errorText"></p>
+      <p style="margin-top: 12px;">
+        <a href="index.html" class="btn btn-secondary">返回列表</a>
+      </p>
+    </div>
+    
+    <div id="exerciseContent" style="display: none;">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value" id="correctCount">0</div>
+          <div class="stat-label">✓ 正确</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="similarCount">0</div>
+          <div class="stat-label">~ 相似</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="remainingCount">0</div>
+          <div class="stat-label">○ 待完成</div>
+        </div>
+      </div>
+      
+      <div class="exercise-area" id="exerciseArea"></div>
+      
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" id="prevBtn" onclick="navigateSentence(-1)">← 上一句</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="navigateSentence(1)">下一句 →</button>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <p>数据来源: <a href="https://nhkeasier.com" target="_blank">nhkeasier.com</a></p>
+  </footer>
+  
+  <script>
+    // Global state
+    let articlesData = null;
+    let currentArticle = null;
+    let currentLevel = 'beginner';
+    let currentSentenceIndex = 0;
+    let sentenceStates = [];
+
+    // 取消进阶限制，所有难度均可自由切换
+    function loadProgress() {
+      // 不追踪进度
+    }
+
+    function saveProgress() {
+      // 不保存进度
+    }
+
+    function isLevelUnlocked(level) {
+      // 所有难度均可切换
+      return true;
+    }
+
+    function onLevelCompleted(level, isCorrectOrSimilar) {
+      // 不追踪进度
+    }
+
+    // ============ 翻译练习模式 ============
+    
+    let practiceMode = 'listen';  // 'listen' 或 'translate'
+    let sentenceTranslations = {};  // 缓存翻译结果
+    let isTranslating = false;
+    
+    function switchPracticeMode(mode) {
+      practiceMode = mode;
+      
+      // Update buttons
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      
+      // Re-render current sentence
+      renderSentence(currentSentenceIndex);
+    }
+    
+    // Google Translate API (免费无需Key)
+    async function translateText(text) {
+      if (!text || sentenceTranslations[text]) {
+        return sentenceTranslations[text] || '';
+      }
+      
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data[0]) {
+          const translation = data[0].map(item => item[0]).join('');
+          sentenceTranslations[text] = translation;
+          return translation;
+        }
+      } catch (e) {
+        console.error('Translation error:', e);
+      }
+      return '';
+    }
+    
+    // Pre-translate all sentences for current article
+    async function preTranslateSentences(sentences) {
+      isTranslating = true;
+      for (const sentence of sentences) {
+        const cleanText = cleanSentenceText(sentence);
+        if (cleanText && !sentenceTranslations[cleanText]) {
+          await translateText(cleanText);
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      isTranslating = false;
+    }
+    
+    function checkTranslation() {
+      const input = document.getElementById('translationInput');
+      const feedback = document.getElementById('translationFeedback');
+      if (!input || !feedback) return;
+      
+      const userAnswer = input.value.trim();
+      const sentences = getSentences(currentLevel);
+      const cleanText = cleanSentenceText(sentences[currentSentenceIndex]);
+      const correctAnswer = sentenceTranslations[cleanText] || '';
+      
+      if (!correctAnswer) {
+        feedback.className = 'translation-feedback show';
+        feedback.innerHTML = '⚠️ 翻译未加载，请稍后重试';
+        return;
+      }
+      
+      // Normalize for comparison
+      const normalizedUser = userAnswer.replace(/\s+/g, '').toLowerCase();
+      const normalizedCorrect = correctAnswer.replace(/\s+/g, '').toLowerCase();
+      
+      let result;
+      if (normalizedUser === normalizedCorrect) {
+        result = 'correct';
+      } else if (calculateSimilarity(normalizedUser, normalizedCorrect) >= 70) {
+        result = 'similar';
+      } else {
+        result = 'wrong';
+      }
+      
+      // Update state
+      if (!sentenceStates[currentSentenceIndex].translationStatus) {
+        sentenceStates[currentSentenceIndex].translationStatus = result;
+        updateStats();
+      }
+      
+      input.classList.remove('correct', 'similar', 'wrong');
+      input.classList.add(result);
+      input.disabled = true;
+      
+      feedback.className = `translation-feedback show ${result}`;
+      if (result === 'correct') {
+        feedback.innerHTML = '✓ 完全正确！';
+      } else if (result === 'similar') {
+        feedback.innerHTML = `~ 相似度较高！<br>正确答案: ${correctAnswer}`;
+      } else {
+        feedback.innerHTML = `✗ 再试一次<br>正确答案: ${correctAnswer}`;
+      }
+      
+      const checkBtn = document.getElementById('checkTransBtn');
+      if (checkBtn) checkBtn.disabled = true;
+    }
+
+    // Clean sentence text: remove broken ruby HTML, keep clean kanji text
+    function cleanSentenceText(html) {
+      if (!html) return '';
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Process all ruby elements
+      const rubies = doc.querySelectorAll('ruby');
+      rubies.forEach(ruby => {
+        const rb = ruby.querySelector('rb');
+        const rt = ruby.querySelector('rt');
+        if (rb) {
+          const baseText = rb.textContent.trim();
+          let cleanText = baseText;
+          if (rt) {
+            // Remove CJK chars from reading, keep only hiragana/katakana
+            const reading = rt.textContent.replace(/[\u3000-\u9fff\u3400-\u4dbf]/g, '').trim();
+            if (reading) {
+              cleanText = baseText + '[' + reading + ']';
+            }
+          }
+          const textNode = doc.createTextNode(cleanText);
+          ruby.replaceWith(textNode);
+        } else {
+          ruby.replaceWith(doc.createTextNode(ruby.textContent));
+        }
+      });
+      
+      // Remove all remaining tags
+      const body = doc.body;
+      while (body.firstChild) {
+        body.appendChild(body.firstChild);
+      }
+      return body.textContent || '';
+    }
+    
+    // Get article ID from URL
+    function getArticleId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+    
+    // Get level from URL or default
+    function getLevel() {
+      const params = new URLSearchParams(window.location.search);
+      const level = params.get('level');
+      if (['beginner', 'intermediate', 'advanced'].includes(level)) {
+        return level;
+      }
+      return 'beginner';
+    }
+    
+    // Load articles data
+    async function loadData() {
+      try {
+        const response = await fetch('articles.json');
+        if (!response.ok) throw new Error('无法加载数据');
+        articlesData = await response.json();
+        return true;
+      } catch (error) {
+        console.error('Error loading data:', error);
+        return false;
+      }
+    }
+    
+    // Initialize page
+    async function init() {
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const exerciseContent = document.getElementById('exerciseContent');
+      const errorText = document.getElementById('errorText');
+      
+      // Set initial level from URL
+      currentLevel = getLevel();
+      updateLevelButtons();
+      
+      // Load data
+      const loaded = await loadData();
+      if (!loaded) {
+        loadingState.style.display = 'none';
+        errorText.textContent = '无法加载练习数据，请确保在服务器上运行此页面';
+        errorState.style.display = 'block';
+        return;
+      }
+      
+      // Find article by ID
+      const articleId = getArticleId();
+      if (articleId) {
+        currentArticle = articlesData.articles.find(a => a.id === articleId);
+      }
+      
+      // If not found by ID, use first article
+      if (!currentArticle && articlesData.articles.length > 0) {
+        currentArticle = articlesData.articles[0];
+      }
+      
+      if (!currentArticle) {
+        loadingState.style.display = 'none';
+        errorText.textContent = '未找到文章';
+        errorState.style.display = 'block';
+        return;
+      }
+      
+      // Set page title and content
+      document.getElementById('headerTitle').textContent = currentArticle.title.substring(0, 20) + '...';
+      document.getElementById('articleTitle').textContent = currentArticle.title;
+      
+      // Set audio source
+      if (currentArticle.mp3_url) {
+        document.getElementById('audioSource').src = currentArticle.mp3_url;
+        document.getElementById('audioPlayer').load();
+      }
+      
+      // Update URL with article ID
+      const url = new URL(window.location);
+      url.searchParams.set('id', currentArticle.id);
+      window.history.replaceState({}, '', url);
+      
+      // Initialize sentences
+      initSentences();
+      
+      // Show exercise content
+      loadingState.style.display = 'none';
+      exerciseContent.style.display = 'block';
+      
+      // Render first sentence
+      renderSentence(0);
+    }
+    
+    // Initialize sentences based on level
+    function initSentences() {
+      const sentences = getSentences(currentLevel);
+      sentenceStates = sentences.map(() => ({ status: 'pending', input: '', translationStatus: null, translationInput: '' }));
+      currentSentenceIndex = 0;
+      updateStats();
+      
+      // Pre-translate sentences in translate mode
+      if (practiceMode === 'translate' && !isTranslating) {
+        preTranslateSentences(sentences);
+      }
+    }
+    
+    // Get sentences for current level
+    function getSentences(level) {
+      if (!currentArticle) return [];
+      return currentArticle[`sentences_${level}`] || currentArticle.sentences_beginner || [];
+    }
+    
+    // Update level buttons
+    function updateLevelButtons() {
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        const level = btn.dataset.level;
+        const unlocked = !levelLocks[level];
+        btn.classList.toggle('active', level === currentLevel);
+        btn.classList.toggle('locked', !unlocked);
+        // Show lock/unlock icon
+        if (level === 'beginner') {
+          btn.innerHTML = '初级';
+        } else if (level === 'intermediate') {
+          btn.innerHTML = unlocked ? '中级' : '中级 🔒';
+        } else if (level === 'advanced') {
+          btn.innerHTML = unlocked ? '高级' : '高级 🔒';
+        }
+      });
+    }
+    
+    // Level button click
+    document.querySelectorAll('.level-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const level = btn.dataset.level;
+        
+        // 取消限制，直接切换难度
+        currentLevel = level;
+        updateLevelButtons();
+        initSentences();
+        
+        // Update URL
+        const url = new URL(window.location);
+        url.searchParams.set('level', currentLevel);
+        window.history.replaceState({}, '', url);
+        
+        renderSentence(0);
+      });
+    });
+    
+    // Render a specific sentence
+    function renderSentence(index) {
+      const sentences = getSentences(currentLevel);
+      if (index < 0 || index >= sentences.length) return;
+      
+      currentSentenceIndex = index;
+      const sentence = sentences[index];
+      const state = sentenceStates[index];
+      const cleanText = cleanSentenceText(sentence);
+      const cachedTranslation = sentenceTranslations[cleanText] || '';
+      const translation = currentArticle.translations?.[index] || cachedTranslation;
+      
+      const exerciseArea = document.getElementById('exerciseArea');
+      
+      let html;
+      
+      if (practiceMode === 'translate') {
+        // 翻译练习模式
+        html = `
+          <div class="sentence-block" id="sentenceBlock">
+            <div class="sentence-header">
+              <div class="sentence-number">
+                <span class="num">${index + 1}</span>
+                <span class="status status-${state.translationStatus || 'pending'}">${getStatusText(state.translationStatus || 'pending')}翻译</span>
+              </div>
+            </div>
+            
+            <div class="text-content" style="display: block; font-size: 18px; line-height: 2; padding: 8px 0;">
+              ${sentence}
+            </div>
+            
+            <div class="translation-section">
+              <div class="translation-mask" style="display: none;"></div>
+              <div class="translation-text show" id="translationText">
+                ${translation || (isTranslating ? '翻译加载中...' : '翻译不可用')}
+              </div>
+            </div>
+            
+            <div class="translation-input-section">
+              <div class="translation-input-label">📝 请输入中文翻译：</div>
+              <input 
+                type="text" 
+                class="translation-input ${state.translationStatus || ''}" 
+                id="translationInput"
+                value="${escapeHtml(state.translationInput || '')}"
+                placeholder="输入中文..."
+                ${state.translationStatus ? 'disabled' : ''}
+              >
+              <div class="input-actions" style="margin-top: 12px;">
+                <button class="btn btn-primary" id="checkTransBtn" onclick="checkTranslation()" ${state.translationStatus ? 'disabled' : ''}>
+                  判定
+                </button>
+                <button class="btn btn-secondary" onclick="resetTranslationInput()">重置</button>
+              </div>
+              <div class="translation-feedback" id="translationFeedback"></div>
+            </div>
+          </div>
+        `;
+        
+        // 翻译模式下自动加载翻译
+        if (!cachedTranslation && !isTranslating) {
+          translateText(cleanText).then(() => {
+            const transText = document.getElementById('translationText');
+            if (transText) {
+              transText.textContent = sentenceTranslations[cleanText] || '翻译不可用';
+            }
+          });
+        }
+      } else {
+        // 听力练习模式（原有功能）
+        html = `
+          <div class="sentence-block" id="sentenceBlock">
+            <div class="sentence-header">
+              <div class="sentence-number">
+                <span class="num">${index + 1}</span>
+                <span class="status status-${state.status}">${getStatusText(state.status)}</span>
+              </div>
+            </div>
+            
+            <div class="mask-overlay ${state.status !== 'pending' ? 'hidden' : ''}" id="maskOverlay" onclick="revealText()">
+              <div>点击显示原文</div>
+              <div class="mask-hint">听写完成后点击查看</div>
+            </div>
+            
+            <div class="text-content" id="textContent" style="${state.status !== 'pending' ? 'display: block;' : ''}">
+              ${sentence}
+            </div>
+            
+            <div class="input-area">
+              <input 
+                type="text" 
+                class="user-input ${state.status !== 'pending' && state.status !== 'pending' ? state.status : ''}" 
+                id="userInput"
+                value="${escapeHtml(state.input)}"
+                placeholder="请输入日文..."
+                ${state.status === 'correct' || state.status === 'similar' ? 'disabled' : ''}
+                onkeydown="handleKeyDown(event)"
+              >
+              <div class="input-actions">
+                <button class="btn btn-primary" id="submitBtn" onclick="checkAnswer()" ${state.status === 'correct' || state.status === 'similar' ? 'disabled' : ''}>
+                  判定
+                </button>
+                <button class="btn btn-secondary" onclick="resetInput()">重置</button>
+              </div>
+              <div class="feedback" id="feedback"></div>
+            </div>
+            
+            <div class="translation-section">
+              <div class="translation-mask ${state.status !== 'pending' ? 'hidden' : ''}" id="translationMask" onclick="revealTranslation()">
+                📖 点击显示中文翻译
+              </div>
+              <div class="translation-text" id="translationText">
+                ${translation || '中文翻译待添加'}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      exerciseArea.innerHTML = html;
+      
+      // Update navigation buttons
+      updateNavButtons();
+      
+      // Focus input
+      if (practiceMode === 'translate') {
+        const input = document.getElementById('translationInput');
+        if (input && !state.translationStatus) {
+          setTimeout(() => input.focus(), 100);
+        }
+      } else {
+        const input = document.getElementById('userInput');
+        if (input && state.status === 'pending') {
+          setTimeout(() => input.focus(), 100);
+        }
+      }
+    }
+    
+    function resetTranslationInput() {
+      const input = document.getElementById('translationInput');
+      const feedback = document.getElementById('translationFeedback');
+      const checkBtn = document.getElementById('checkTransBtn');
+      
+      if (input) {
+        input.value = '';
+        input.disabled = false;
+        input.classList.remove('correct', 'similar', 'wrong');
+        input.focus();
+      }
+      
+      if (feedback) {
+        feedback.className = 'translation-feedback';
+      }
+      
+      if (checkBtn) {
+        checkBtn.disabled = false;
+      }
+      
+      sentenceStates[currentSentenceIndex].translationStatus = null;
+      updateStats();
+    }
+    
+    // Reveal text
+    function revealText() {
+      const mask = document.getElementById('maskOverlay');
+      const text = document.getElementById('textContent');
+      if (mask) mask.classList.add('hidden');
+      if (text) text.style.display = 'block';
+    }
+    
+    // Reveal translation
+    function revealTranslation() {
+      const mask = document.getElementById('translationMask');
+      const text = document.getElementById('translationText');
+      if (mask) mask.classList.add('hidden');
+      if (text) text.classList.add('show');
+    }
+    
+    // Handle keyboard
+    function handleKeyDown(event) {
+      if (event.key === 'Enter') {
+        checkAnswer();
+      }
+    }
+    
+    // Check answer
+    function checkAnswer() {
+      const input = document.getElementById('userInput');
+      const feedback = document.getElementById('feedback');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      if (!input || !feedback) return;
+      
+      const userAnswer = input.value.trim();
+      const sentences = getSentences(currentLevel);
+      const correctAnswer = stripHtml(sentences[currentSentenceIndex]);
+      
+      // Compare (ignore spaces)
+      const normalizedUser = normalizeText(userAnswer);
+      const normalizedCorrect = normalizeText(correctAnswer);
+      
+      let result;
+      if (normalizedUser === normalizedCorrect) {
+        result = 'correct';
+      } else if (calculateSimilarity(normalizedUser, normalizedCorrect) >= 85) {
+        result = 'similar';
+      } else {
+        result = 'wrong';
+      }
+      
+      // Update state
+      sentenceStates[currentSentenceIndex] = {
+        status: result,
+        input: userAnswer
+      };
+      
+      // Update UI
+      input.classList.remove('correct', 'similar', 'wrong');
+      input.classList.add(result);
+      input.disabled = result !== 'wrong';
+      
+      feedback.className = `feedback show ${result}`;
+      if (result === 'correct') {
+        feedback.innerHTML = '✓ 完全正确！';
+      } else if (result === 'similar') {
+        feedback.innerHTML = `~ 相似度较高！<br><span style="font-size: 12px;">正确答案: ${escapeHtml(correctAnswer)}</span>`;
+      } else {
+        feedback.innerHTML = `✗ 再试一次<br><span style="font-size: 12px;">正确答案: ${escapeHtml(correctAnswer)}</span>`;
+      }
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+      
+      // Update status badge
+      const statusBadge = document.querySelector('.sentence-number .status');
+      if (statusBadge) {
+        statusBadge.className = `status status-${result}`;
+        statusBadge.textContent = getStatusText(result);
+      }
+      
+      // Update stats
+      updateStats();
+    }
+    
+    // Reset input
+    function resetInput() {
+      const input = document.getElementById('userInput');
+      const feedback = document.getElementById('feedback');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      if (input) {
+        input.value = '';
+        input.disabled = false;
+        input.classList.remove('correct', 'similar', 'wrong');
+        input.focus();
+      }
+      
+      if (feedback) {
+        feedback.className = 'feedback';
+      }
+      
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
+      
+      // Reset state
+      sentenceStates[currentSentenceIndex] = { status: 'pending', input: '' };
+      
+      // Update status badge
+      const statusBadge = document.querySelector('.sentence-number .status');
+      if (statusBadge) {
+        statusBadge.className = 'status status-pending';
+        statusBadge.textContent = '待完成';
+      }
+      
+      updateStats();
+    }
+    
+    // Navigate between sentences
+    function navigateSentence(direction) {
+      const sentences = getSentences(currentLevel);
+      const newIndex = currentSentenceIndex + direction;
+      
+      if (newIndex >= 0 && newIndex < sentences.length) {
+        renderSentence(newIndex);
+      }
+    }
+    
+    // Update navigation buttons
+    function updateNavButtons() {
+      const sentences = getSentences(currentLevel);
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      
+      if (prevBtn) {
+        prevBtn.disabled = currentSentenceIndex === 0;
+      }
+      
+      if (nextBtn) {
+        nextBtn.disabled = currentSentenceIndex === sentences.length - 1;
+      }
+    }
+    
+    // Update statistics
+    function updateStats() {
+      let correct, similar, remaining;
+      
+      if (practiceMode === 'translate') {
+        // 翻译模式统计
+        correct = sentenceStates.filter(s => s.translationStatus === 'correct').length;
+        similar = sentenceStates.filter(s => s.translationStatus === 'similar').length;
+        remaining = sentenceStates.filter(s => !s.translationStatus || s.translationStatus === 'pending').length;
+      } else {
+        // 听力模式统计
+        correct = sentenceStates.filter(s => s.status === 'correct').length;
+        similar = sentenceStates.filter(s => s.status === 'similar').length;
+        remaining = sentenceStates.filter(s => s.status === 'pending').length;
+      }
+      
+      document.getElementById('correctCount').textContent = correct;
+      document.getElementById('similarCount').textContent = similar;
+      document.getElementById('remainingCount').textContent = remaining;
+      
+      // Check if all sentences completed, then save stats
+      if (remaining === 0 && sentenceStates.length > 0) {
+        savePracticeStats(correct, similar);
+      }
+    }
+    
+    // Save practice stats to localStorage
+    function savePracticeStats(correct, similar) {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const rate = Math.round((correct / sentenceStates.length) * 100);
+      const type = '慢速练习';
+      
+      try {
+        const saved = localStorage.getItem('nhk_listening_stats');
+        let stats = saved ? JSON.parse(saved) : [];
+        
+        // Check if already have stats for today
+        const todayIndex = stats.findIndex(s => s.date === today);
+        
+        if (todayIndex >= 0) {
+          // Update today's stats (keep the better rate)
+          if (rate > stats[todayIndex].rate) {
+            stats[todayIndex] = {
+              date: today,
+              rate: rate,
+              type: type,
+              timestamp: Date.now()
+            };
+          }
+        } else {
+          // Add new stats
+          stats.push({
+            date: today,
+            rate: rate,
+            type: type,
+            timestamp: Date.now()
+          });
+        }
+        
+        // Keep only last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        stats = stats.filter(s => new Date(s.date) >= thirtyDaysAgo);
+        
+        localStorage.setItem('nhk_listening_stats', JSON.stringify(stats));
+      } catch (e) {
+        console.error('Error saving stats:', e);
+      }
+    }
+    
+    // Strip HTML tags
+    function stripHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || div.innerText || '';
+    }
+    
+    // Normalize text for comparison
+    function normalizeText(text) {
+      return text.replace(/\s+/g, '').toLowerCase();
+    }
+    
+    // Calculate similarity (Levenshtein-based)
+    function calculateSimilarity(str1, str2) {
+      if (!str1 && !str2) return 100;
+      if (!str1 || !str2) return 0;
+      
+      const len1 = str1.length;
+      const len2 = str2.length;
+      
+      // Create matrix
+      const matrix = [];
+      for (let i = 0; i <= len1; i++) {
+        matrix[i] = [i];
+      }
+      for (let j = 0; j <= len2; j++) {
+        matrix[0][j] = j;
+      }
+      
+      // Fill matrix
+      for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+          const cost = str1[i-1] === str2[j-1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i-1][j] + 1,      // deletion
+            matrix[i][j-1] + 1,      // insertion
+            matrix[i-1][j-1] + cost  // substitution
+          );
+        }
+      }
+      
+      const distance = matrix[len1][len2];
+      const maxLen = Math.max(len1, len2);
+      return Math.round((1 - distance / maxLen) * 100);
+    }
+    
+    // Get status display text
+    function getStatusText(status) {
+      const texts = {
+        pending: '待完成',
+        correct: '正确',
+        similar: '相似',
+        wrong: '错误'
+      };
+      return texts[status] || status;
+    }
+    
+    // Escape HTML
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Audio progress
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load saved progress
+      loadProgress();
+      updateLevelButtons();
+      
+      const audio = document.getElementById('audioPlayer');
+      const progressFill = document.getElementById('progressFill');
+      
+      if (audio && progressFill) {
+        audio.addEventListener('timeupdate', () => {
+          const progress = (audio.currentTime / audio.duration) * 100;
+          progressFill.style.width = `${progress}%`;
+        });
+        
+        audio.addEventListener('ended', () => {
+          progressFill.style.width = '100%';
+        });
+      }
+      
+      // Initialize page
+      init();
+    });
+  </script>
+</body>
+</html>
